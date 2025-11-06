@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 
 function Home() {
   const [movies, setMovies] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState('');
 
 
   const sampleMovies = [
@@ -39,55 +41,60 @@ function Home() {
     },
   ];
 
-
   useEffect(() => {
     const storedMovies = JSON.parse(sessionStorage.getItem('movies')) || sampleMovies;
     setMovies(storedMovies);
   }, []);
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const updatedMovies = JSON.parse(sessionStorage.getItem('movies')) || sampleMovies;
-      setMovies(updatedMovies);
-    };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this movie?')) {
+      const updatedMovies = movies.filter((movie) => movie.id !== id);
+      setMovies(updatedMovies);
+      sessionStorage.setItem('movies', JSON.stringify(updatedMovies));
+    }
+  };
 
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Watching':
-        return 'badge bg-success';
+        return 'badge bg-info text-dark';
       case 'Completed':
-        return 'badge bg-primary';
+        return 'badge bg-success';
       case 'Wishlist':
         return 'badge bg-warning text-dark';
       default:
         return 'badge bg-secondary';
     }
   };
-  const handleDelete = (id) => {
-  if (window.confirm("Are you sure you want to delete this movie?")) {
-    const updatedMovies = movies.filter((movie) => movie.id !== id);
-    setMovies(updatedMovies);
-    sessionStorage.setItem('movies', JSON.stringify(updatedMovies));
-  }
-};
+
+  const filteredMovies = movies
+    .filter((movie) =>
+      movie.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOption === 'name') {
+        return a.name.localeCompare(b.name);
+      } else if (sortOption === 'rating') {
+        const ratingA = parseFloat(a.rating.replace(/[^\d.]/g, ''));
+        const ratingB = parseFloat(b.rating.replace(/[^\d.]/g, ''));
+        return ratingB - ratingA;
+      }
+      return 0;
+    });
 
   return (
     <div>
       <Header />
 
- 
       <div className="container py-5">
         <div className="row align-items-center">
           <div className="col-md-6 mb-4 mb-md-0 text-center">
-            <img 
+            <img
               src="https://png.pngtree.com/background/20231030/original/pngtree-movie-night-essentials-clapperboard-popcorn-bucket-drink-and-3d-glasses-on-picture-image_5798729.jpg"
               className="img-fluid "
-              alt="Sample"
+              alt="Movie Hero"
             />
           </div>
 
@@ -97,20 +104,45 @@ function Home() {
               Track your favorite movies and TV shows. Add, view, and manage your collection easily.
             </p>
             <a href="/addmovies" className="btn btn-danger px-4 py-2 rounded-pill me-2">
-              Add ➕
+              ➕ Add Movie
             </a>
-            <a href="/status" className="btn btn-warning px-4 py-2 rounded-pill">
-              View Status 👁️
-            </a>
+            
           </div>
         </div>
       </div>
 
-  
       <div className="container mt-5">
-        <h3 className="text-center mb-4 fw-bold">🎬 My Movie Library</h3>
+     
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+          <h3 className="fw-bold mb-3 mb-md-0">🎬 My Movie Library</h3>
+
+          <div className="d-flex flex-wrap gap-2">
+         
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              style={{ width: '200px' }}
+              placeholder="🔍 Search movie..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            <select
+              className="form-select form-select-sm"
+              style={{ width: '180px' }}
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              <option value="">Sort By</option>
+              <option value="name">Name</option>
+              <option value="rating">Rating </option>
+            </select>
+          </div>
+        </div>
+
+
         <div className="row">
-          {movies.map((movie) => (
+          {filteredMovies.map((movie) => (
             <div className="col-md-4 mb-4" key={movie.id}>
               <div className="card shadow-sm h-100 border-0 rounded-4">
                 <Link
@@ -126,11 +158,16 @@ function Home() {
                   <div className="card-body text-center">
                     <h5 className="card-title fw-bold">{movie.name}</h5>
                     <p className="text-warning mb-2">{movie.rating}</p>
-                    <p className="text-muted mb-1"><strong>Director:</strong> {movie.director}</p>
-                    <p className="text-muted mb-1"><strong>Genre:</strong> {movie.genre}</p>
-                    <p className="text-muted mb-1"><strong>Platform:</strong> {movie.platform}</p>
+                    <p className="text-muted mb-1">
+                      <strong>Director:</strong> {movie.director}
+                    </p>
+                    <p className="text-muted mb-1">
+                      <strong>Genre:</strong> {movie.genre}
+                    </p>
+                    <p className="text-muted mb-1">
+                      <strong>Platform:</strong> {movie.platform}
+                    </p>
 
-                   
                     {movie.status && (
                       <span className={`${getStatusBadge(movie.status)} mt-2`}>
                         {movie.status}
@@ -139,18 +176,22 @@ function Home() {
                   </div>
                 </Link>
 
-                <div className="  text-center">
+                <div className="text-center pb-3">
                   <button className="btn btn-outline-danger btn-sm me-2">❤️ Favorite</button>
-                <button
-  onClick={() => handleDelete(movie.id)}
-  className="btn btn-danger btn-sm me-2"
->
-  🗑️ Delete
-</button>
+                  <button
+                    onClick={() => handleDelete(movie.id)}
+                    className="btn btn-danger btn-sm me-2"
+                  >
+                    🗑️ Delete
+                  </button>
                 </div>
               </div>
             </div>
           ))}
+
+          {filteredMovies.length === 0 && (
+            <p className="text-center text-muted mt-4">No movies found.</p>
+          )}
         </div>
       </div>
     </div>
