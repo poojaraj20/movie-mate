@@ -1,0 +1,19 @@
+import React from 'react'
+
+function Header() {
+  return (
+    <div>
+     <nav class="navbar bg-danger">
+  <div class="container-fluid">
+    <a class="navbar-brand">Movie Mate 🍿</a>
+    <form class="d-flex" role="search">
+      <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
+      <button class="btn btn-outline-warning" type="submit">Search</button>
+    </form>
+  </div>
+</nav>
+    </div>
+  )
+}
+
+export default Header
