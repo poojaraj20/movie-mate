@@ -83,19 +83,7 @@ function AddMovies() {
               </select>
             </div>
 
-            <div className="mb-3">
-              <label className="form-label">Status</label>
-              <select
-                className="form-select"
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-              >
-                <option>Watching</option>
-                <option>Completed</option>
-                <option>Wishlist</option>
-              </select>
-            </div>
+          
 
             <div className="text-center">
               <button type="submit" className="btn btn-success px-4">
