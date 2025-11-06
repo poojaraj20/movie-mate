@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '../component/Header';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 
 function AddMovies() {
   const navigate = useNavigate();
@@ -10,42 +10,67 @@ function AddMovies() {
     genre: '',
     platform: '',
     rating: '',
-    image: ''
+    image: '',
+    status: '' 
   });
 
-  useEffect(() => {
-    const storedMovies = JSON.parse(sessionStorage.getItem('movies')) || [];
-    if (storedMovies.length === 0) {
-      sessionStorage.setItem('movies', JSON.stringify([]));
-    }
-  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const storedMovies = JSON.parse(sessionStorage.getItem('movies')) || [];
-    const newMovie = {
-      id: storedMovies.length ? storedMovies[storedMovies.length - 1].id + 1 : 1,
-      ...form,
-    };
+    if (!form.name || !form.platform) {
+      alert("Please fill movie name and platform");
+      return;
+    }
 
-    const updatedMovies = [...storedMovies, newMovie];
-    sessionStorage.setItem('movies', JSON.stringify(updatedMovies));
 
-    alert('🎉 Movie added successfully!');
-    setForm({
-      name: '',
-      director: '',
-      genre: '',
-      platform: '',
-      rating: '',
-      image: ''
-    });
-    navigate('/'); 
+    const parsedRating =
+      form.rating === "" || form.rating === null
+        ? null
+        : parseFloat(form.rating);
+
+    if (parsedRating !== null && (parsedRating < 0 || parsedRating > 10)) {
+      alert("Rating must be between 0 and 10");
+      return;
+    }
+
+    try {
+      const payload = { ...form, rating: parsedRating };
+
+      const res = await fetch('/api/movies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(err.message || 'Failed to add movie');
+      }
+
+      await res.json();
+
+      alert('🎉 Movie added successfully!');
+      setForm({
+        name: '',
+        director: '',
+        genre: '',
+        platform: '',
+        rating: '',
+        image: '',
+        status: '' 
+      });
+
+      navigate('/', { replace: true });
+    } catch (err) {
+      console.error("Add movie error:", err);
+      alert('Failed to add movie: ' + err.message);
+    }
   };
 
   return (
@@ -111,14 +136,33 @@ function AddMovies() {
             </div>
 
             <div className="mb-3">
+              <label className="form-label">Status</label>
+              <select
+                className="form-select"
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Status</option>
+                <option>Watching</option>
+                <option>Completed</option>
+                <option>Wishlist</option>
+              </select>
+            </div>
+
+            <div className="mb-3">
               <label className="form-label">Rating</label>
               <input
-                type="text"
+                type="number"
+                step="0.1"
+                min="0"
+                max="10"
                 className="form-control"
                 name="rating"
                 value={form.rating}
                 onChange={handleChange}
-                placeholder="e.g. ⭐ 8.5/10"
+                placeholder="e.g. 8.5"
               />
             </div>
 
