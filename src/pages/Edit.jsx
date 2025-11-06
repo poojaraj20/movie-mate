@@ -1,24 +1,34 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../component/Header';
-import { useNavigate } from 'react-router-dom'; 
 
-function AddMovies() {
+function Edit() {
+  const { id } = useParams();
   const navigate = useNavigate();
+
+
+  const sampleMovies = [
+    { id: 1, name: 'Lokah', director: 'Vinay Govind', genre: 'Drama', platform: 'Netflix', rating: '⭐ 9/10', image: 'https://i.postimg.cc/W3PZsjst/lokah-chapter-one-chandra1754914080-2.webp', status: 'Watching' },
+    { id: 2, name: 'Avatar', director: 'James Cameron', genre: 'Fantasy', platform: 'Disney+', rating: '⭐ 8.5/10', image: 'https://image.tmdb.org/t/p/original/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg', status: 'Completed' },
+    { id: 3, name: 'Interstellar', director: 'Christopher Nolan', genre: 'Sci-Fi', platform: 'Prime Video', rating: '⭐ 9.5/10', image: 'https://i.pinimg.com/originals/8e/0d/ab/8e0dab8699be85720ce55845065bf6dc.jpg', status: 'Wishlist' },
+  ];
+
   const [form, setForm] = useState({
     name: '',
     director: '',
     genre: '',
     platform: '',
     rating: '',
-    image: ''
+    image: '',
+    status: ''
   });
 
   useEffect(() => {
-    const storedMovies = JSON.parse(sessionStorage.getItem('movies')) || [];
-    if (storedMovies.length === 0) {
-      sessionStorage.setItem('movies', JSON.stringify([]));
-    }
-  }, []);
+    const storedMovies = JSON.parse(sessionStorage.getItem('movies')) || sampleMovies;
+    const selected = storedMovies.find((m) => m.id === parseInt(id));
+    if (selected) setForm(selected);
+  }, [id]);
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -27,35 +37,25 @@ function AddMovies() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const storedMovies = JSON.parse(sessionStorage.getItem('movies')) || [];
-    const newMovie = {
-      id: storedMovies.length ? storedMovies[storedMovies.length - 1].id + 1 : 1,
-      ...form,
-    };
+    const storedMovies = JSON.parse(sessionStorage.getItem('movies')) || sampleMovies;
+    const updatedMovies = storedMovies.map((movie) =>
+      movie.id === parseInt(id) ? form : movie
+    );
 
-    const updatedMovies = [...storedMovies, newMovie];
     sessionStorage.setItem('movies', JSON.stringify(updatedMovies));
-
-    alert('🎉 Movie added successfully!');
-    setForm({
-      name: '',
-      director: '',
-      genre: '',
-      platform: '',
-      rating: '',
-      image: ''
-    });
-    navigate('/'); 
+    alert('✅ Movie details updated successfully!');
+    navigate(`/movie/${id}`);
   };
 
   return (
     <div>
       <Header />
       <div className="container mt-5">
-        <div className="card p-4 shadow">
-          <h3 className="text-center mb-4 fw-bold">🎬 Add New Movie</h3>
-
+        <div className="card shadow p-4">
+          <h3 className="text-center mb-4 fw-bold">✏️ Edit Movie Details</h3>
           <form onSubmit={handleSubmit}>
+            
+         
             <div className="mb-3">
               <label className="form-label">Movie Name</label>
               <input
@@ -65,7 +65,6 @@ function AddMovies() {
                 value={form.name}
                 onChange={handleChange}
                 required
-                placeholder="Enter movie name"
               />
             </div>
 
@@ -77,10 +76,11 @@ function AddMovies() {
                 name="director"
                 value={form.director}
                 onChange={handleChange}
-                placeholder="Enter director name"
+                required
               />
             </div>
 
+          
             <div className="mb-3">
               <label className="form-label">Genre</label>
               <input
@@ -89,10 +89,10 @@ function AddMovies() {
                 name="genre"
                 value={form.genre}
                 onChange={handleChange}
-                placeholder="e.g. Action, Drama, Sci-Fi"
               />
             </div>
 
+            
             <div className="mb-3">
               <label className="form-label">Platform</label>
               <select
@@ -100,9 +100,7 @@ function AddMovies() {
                 name="platform"
                 value={form.platform}
                 onChange={handleChange}
-                required
               >
-                <option value="">Select Platform</option>
                 <option>Netflix</option>
                 <option>Prime Video</option>
                 <option>Disney+</option>
@@ -110,6 +108,7 @@ function AddMovies() {
               </select>
             </div>
 
+        
             <div className="mb-3">
               <label className="form-label">Rating</label>
               <input
@@ -118,7 +117,7 @@ function AddMovies() {
                 name="rating"
                 value={form.rating}
                 onChange={handleChange}
-                placeholder="e.g. ⭐ 8.5/10"
+                placeholder="e.g. ⭐ 8/10"
               />
             </div>
 
@@ -130,22 +129,41 @@ function AddMovies() {
                 name="image"
                 value={form.image}
                 onChange={handleChange}
-                placeholder="Paste movie poster link"
+                placeholder="Enter image link"
               />
             </div>
 
+    
+            <div className="mb-3">
+              <label className="form-label">Status</label>
+              <select
+                className="form-select"
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Status</option>
+                <option>Watching</option>
+                <option>Completed</option>
+                <option>Wishlist</option>
+              </select>
+            </div>
+
+         
             <div className="text-center mt-4">
               <button type="submit" className="btn btn-success px-4 me-2">
-                ➕ Add Movie
+                ✅ Save Changes
               </button>
               <button
                 type="button"
                 className="btn btn-warning px-4"
-                onClick={() => navigate('/')}
+                onClick={() => navigate(`/movie/${id}`)}
               >
-                ⬅️ Back
+                ⬅️ Cancel
               </button>
             </div>
+
           </form>
         </div>
       </div>
@@ -153,4 +171,4 @@ function AddMovies() {
   );
 }
 
-export default AddMovies;
+export default Edit;
