@@ -53,7 +53,7 @@ npm install
 Create a file named `.env` inside the `backend/` folder with the following content:
 
 ```env
-PORT=5000
+PORT=4000
 MONGO_URI=your_mongodb_connection_string
 ```
 
