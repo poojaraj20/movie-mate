@@ -10,7 +10,7 @@ const movieSchema = new mongoose.Schema(
     image: { type: String },
     status: {
       type: String,
-      enum: ["Watching", "Completed", "Wishlist"], // restrict to valid values
+      enum: ["Watching", "Completed", "Wishlist"], 
       default: "Wishlist",
     },
   },
